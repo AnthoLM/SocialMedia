@@ -4,7 +4,7 @@ import {
  useQueryClient,
  useInfiniteQuery,
 } from '@tanstack/react-query'
-import { createPost, createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getPostById, getRecentPosts, likePost, savePost, signinAccount, signOutAccount, updatePost } from '../appwrite/api'
+import { createPost, createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getInfinitePosts, getPostById, getRecentPosts, getUserPosts, likePost, savePost, searchPosts, signinAccount, signOutAccount, updatePost } from '../appwrite/api'
 import { INewPost, INewUser, IUpdatePost } from '@/types'
 import { appwriteConfig, storage } from '../appwrite/config'
 import { ID } from 'appwrite'
@@ -42,7 +42,7 @@ export const useCreatePost = () => {
     })
 }
 
-export const usegetRecentPosts = () => {
+export const useGetRecentPosts = () => {
     return useQuery({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
         queryFn: getRecentPosts,
@@ -128,6 +128,14 @@ export const useGetPostById = (postId: string) => {
     })
 }
 
+export const useGetUserPosts = (userId?: string) => {
+    return useQuery({
+      queryKey: [QUERY_KEYS.GET_USER_POSTS, userId],
+      queryFn: () => getUserPosts(userId),
+      enabled: !!userId,
+    });
+  };
+
 export const useUpdatePost = () => {
     const queryClient = useQueryClient();
 
@@ -151,5 +159,27 @@ export const useDeletePost = () => {
                 queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
             })
         }
+    })
+}
+
+export const useGetPosts = () => {
+    return useInfiniteQuery({
+        queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
+        queryFn: getInfinitePosts,
+        getNextPageParam: (lastPage) => {
+            if(lastPage && lastPage.documents.length === 0) return null;
+
+            const lastId = lastPage.documents[lastPage?.documents.length-1].$id;
+
+            return lastId;
+        }
+    })
+}
+
+export const useSearchPosts = (searchTerm: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.SEARCH_POSTS, searchTerm],
+        queryFn: () => searchPosts(searchTerm),
+        enabled: !!searchTerm
     })
 }
